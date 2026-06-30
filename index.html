@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Codex Medicus &mdash; Clinical Calculators</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="parchment-overlay" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="vitruvian" aria-hidden="true">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="105" r="78" />
+          <rect x="32" y="37" width="136" height="136" />
+          <g class="figure">
+            <circle cx="100" cy="55" r="13" />
+            <line x1="100" y1="68" x2="100" y2="135" />
+            <line x1="100" y1="82" x2="40" y2="70" />
+            <line x1="100" y1="82" x2="160" y2="70" />
+            <line x1="100" y1="82" x2="48" y2="108" />
+            <line x1="100" y1="82" x2="152" y2="108" />
+            <line x1="100" y1="135" x2="68" y2="178" />
+            <line x1="100" y1="135" x2="132" y2="178" />
+            <line x1="100" y1="135" x2="58" y2="172" />
+            <line x1="100" y1="135" x2="142" y2="172" />
+          </g>
+        </svg>
+      </div>
+      <div class="header-text">
+        <p class="eyebrow">Anno Domini &mdash; Ars Medicinae</p>
+        <h1>Codex Medicus</h1>
+        <p class="subtitle">A studie of clinical calculation, in the manner of the masters</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Calculators">
+    <button class="tab is-active" role="tab" aria-selected="true" data-target="crcl">Creatinine Clearance</button>
+    <button class="tab" role="tab" aria-selected="false" data-target="sts">STS Cardiac Risk</button>
+    <button class="tab" role="tab" aria-selected="false" data-target="chadsvasc">CHA&#8322;DS&#8322;-VASc</button>
+    <button class="tab" role="tab" aria-selected="false" data-target="hasbled">HAS-BLED</button>
+  </nav>
+
+  <main>
+    <!-- ====================== CREATININE CLEARANCE ====================== -->
+    <section class="panel is-active" id="crcl" role="tabpanel">
+      <div class="panel-head">
+        <h2>Creatinine Clearance</h2>
+        <p class="panel-sub">Cockcroft&ndash;Gault estimation across actual, ideal &amp; adjusted body weight</p>
+      </div>
+
+      <form id="crcl-form" class="grid">
+        <label class="field">
+          <span>Age (years)</span>
+          <input type="number" id="cg-age" min="0" max="130" step="1" placeholder="e.g. 64" />
+        </label>
+
+        <label class="field">
+          <span>Sex</span>
+          <select id="cg-sex">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Height</span>
+          <div class="combo">
+            <input type="number" id="cg-height" min="0" step="0.1" placeholder="e.g. 175" />
+            <select id="cg-height-unit">
+              <option value="cm">cm</option>
+              <option value="in">in</option>
+            </select>
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Weight (actual)</span>
+          <div class="combo">
+            <input type="number" id="cg-weight" min="0" step="0.1" placeholder="e.g. 82" />
+            <select id="cg-weight-unit">
+              <option value="kg">kg</option>
+              <option value="lb">lb</option>
+            </select>
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Serum creatinine</span>
+          <div class="combo">
+            <input type="number" id="cg-scr" min="0" step="0.01" placeholder="e.g. 1.1" />
+            <select id="cg-scr-unit">
+              <option value="mgdl">mg/dL</option>
+              <option value="umol">&micro;mol/L</option>
+            </select>
+          </div>
+        </label>
+
+        <div class="field actions">
+          <button type="submit" class="btn">Calculate</button>
+          <button type="reset" class="btn ghost">Clear</button>
+        </div>
+      </form>
+
+      <div class="results" id="crcl-results" hidden>
+        <div class="result-cards">
+          <div class="result-card">
+            <h3>Actual Body Weight</h3>
+            <p class="big" id="res-abw">&mdash;</p>
+            <p class="unit">mL/min</p>
+            <p class="sub" id="res-abw-wt"></p>
+          </div>
+          <div class="result-card highlight">
+            <h3>Ideal Body Weight</h3>
+            <p class="big" id="res-ibw">&mdash;</p>
+            <p class="unit">mL/min</p>
+            <p class="sub" id="res-ibw-wt"></p>
+          </div>
+          <div class="result-card">
+            <h3>Adjusted Body Weight</h3>
+            <p class="big" id="res-adjbw">&mdash;</p>
+            <p class="unit">mL/min</p>
+            <p class="sub" id="res-adjbw-wt"></p>
+          </div>
+        </div>
+        <p class="guidance" id="crcl-guidance"></p>
+      </div>
+
+      <details class="scroll-note">
+        <summary>Formulae &amp; notes</summary>
+        <p><strong>Cockcroft&ndash;Gault:</strong> CrCl = [(140 &minus; age) &times; weight &times; (0.85 if female)] &divide; (72 &times; SCr<sub>mg/dL</sub>)</p>
+        <p><strong>Ideal body weight (Devine):</strong> Men 50 + 2.3 &times; (in &minus; 60) kg; Women 45.5 + 2.3 &times; (in &minus; 60) kg.</p>
+        <p><strong>Adjusted body weight:</strong> IBW + 0.4 &times; (ABW &minus; IBW). Commonly applied when actual weight exceeds 120&#37; of ideal.</p>
+        <p>If actual weight is below ideal, actual weight is generally preferred for dosing.</p>
+      </details>
+    </section>
+
+    <!-- ====================== STS CARDIAC RISK ====================== -->
+    <section class="panel" id="sts" role="tabpanel">
+      <div class="panel-head">
+        <h2>STS Adult Cardiac Surgery Risk</h2>
+        <p class="panel-sub">Live results from the official STS Short-Term Risk Calculator</p>
+      </div>
+
+      <div class="warning">
+        This panel sends your inputs to the <strong>official STS Adult Cardiac Surgery Risk Calculator</strong>
+        (acsdriskcalc.research.sts.org) and displays the returned estimates. A working internet connection is
+        required. Results are produced by STS, not by this site.
+      </div>
+
+      <form id="sts-form" class="grid">
+        <label class="field">
+          <span>Procedure</span>
+          <select id="sts-procedure">
+            <option value="Isolated CABG">Isolated CABG</option>
+            <option value="Isolated AVR">Isolated AVR</option>
+            <option value="Isolated MVR">Isolated MVR</option>
+            <option value="AVR + CABG">AVR + CABG</option>
+            <option value="MVR + CABG">MVR + CABG</option>
+            <option value="MV Repair">MV Repair</option>
+            <option value="MV Repair + CABG">MV Repair + CABG</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Status</span>
+          <select id="sts-status">
+            <option value="Elective">Elective</option>
+            <option value="Urgent">Urgent</option>
+            <option value="Emergent">Emergent</option>
+            <option value="Emergent Salvage">Emergent / salvage</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Prior cardiac surgeries</span>
+          <select id="sts-incidence">
+            <option value="First CV surgery">None (first)</option>
+            <option value="ReOp#1 CV surgery">1 prior</option>
+            <option value="ReOp#2 CV surgery">2 prior</option>
+            <option value="ReOp#3 CV surgery">3 prior</option>
+            <option value="ReOp&ge;4 CV surgery">4 or more</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Age (years)</span>
+          <input type="number" id="sts-age" min="18" max="110" step="1" placeholder="e.g. 70" />
+        </label>
+
+        <label class="field">
+          <span>Sex</span>
+          <select id="sts-sex">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Height</span>
+          <div class="combo">
+            <input type="number" id="sts-height" min="0" step="0.1" placeholder="e.g. 175" />
+            <select id="sts-height-unit">
+              <option value="cm">cm</option>
+              <option value="in">in</option>
+            </select>
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Weight</span>
+          <div class="combo">
+            <input type="number" id="sts-weight" min="0" step="0.1" placeholder="e.g. 80" />
+            <select id="sts-weight-unit">
+              <option value="kg">kg</option>
+              <option value="lb">lb</option>
+            </select>
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Ejection fraction (%)</span>
+          <input type="number" id="sts-ef" min="5" max="80" step="1" placeholder="e.g. 55" />
+        </label>
+
+        <label class="field">
+          <span>Serum creatinine (mg/dL)</span>
+          <input type="number" id="sts-creat" min="0.2" max="15" step="0.01" placeholder="e.g. 1.0" />
+        </label>
+
+        <label class="field">
+          <span>NYHA class</span>
+          <select id="sts-nyha">
+            <option value="none">None / I &ndash; III</option>
+            <option value="iv">IV</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Diabetes</span>
+          <select id="sts-diabetes">
+            <option value="">No</option>
+            <option value="Yes, Diet Only">Diet controlled</option>
+            <option value="Yes, Oral">Oral agents</option>
+            <option value="Yes, Insulin">Insulin</option>
+            <option value="Yes, Other Control">Other control</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Chronic lung disease</span>
+          <select id="sts-lung">
+            <option value="">None</option>
+            <option value="Mild">Mild</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Severe">Severe</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Cerebrovascular disease</span>
+          <select id="sts-cvd">
+            <option value="">None</option>
+            <option value="CVA &le; 30 days">CVA &le; 30 days</option>
+            <option value="CVA > 30 days">CVA &gt; 30 days</option>
+            <option value="TIA">TIA</option>
+            <option value="Other CVD">Other CVD</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Cardiac presentation</span>
+          <select id="sts-presentation">
+            <option value="">None</option>
+            <option value="Stable Angina">Stable angina</option>
+            <option value="Unstable Angina">Unstable angina</option>
+            <option value="Non-ST Elevation MI">NSTEMI</option>
+            <option value="STEMI">STEMI</option>
+          </select>
+        </label>
+
+        <fieldset class="field checks">
+          <legend>Comorbidities</legend>
+          <label class="check"><input type="checkbox" id="sts-htn" /> Hypertension</label>
+          <label class="check"><input type="checkbox" id="sts-dialysis" /> Dialysis</label>
+          <label class="check"><input type="checkbox" id="sts-pvd" /> Peripheral vascular disease</label>
+          <label class="check"><input type="checkbox" id="sts-immuno" /> Immunosuppression</label>
+          <label class="check"><input type="checkbox" id="sts-shock" /> Cardiogenic shock</label>
+        </fieldset>
+
+        <div class="field actions">
+          <button type="submit" class="btn" id="sts-submit">Calculate via STS</button>
+          <button type="reset" class="btn ghost">Clear</button>
+        </div>
+      </form>
+
+      <div class="results" id="sts-results" hidden>
+        <div class="result-cards single">
+          <div class="result-card highlight">
+            <h3>Operative Mortality</h3>
+            <p class="big" id="res-sts">&mdash;</p>
+            <p class="unit">predicted by STS</p>
+            <p class="sub" id="res-sts-proc"></p>
+          </div>
+        </div>
+        <div class="result-cards" id="sts-secondary"></div>
+        <p class="guidance" id="sts-guidance"></p>
+      </div>
+
+      <div class="sts-status" id="sts-state" hidden></div>
+    </section>
+
+    <!-- ====================== CHA2DS2-VASc ====================== -->
+    <section class="panel" id="chadsvasc" role="tabpanel">
+      <div class="panel-head">
+        <h2>CHA&#8322;DS&#8322;-VASc Score</h2>
+        <p class="panel-sub">Stroke risk in non-valvular atrial fibrillation</p>
+      </div>
+
+      <form id="chadsvasc-form" class="grid">
+        <fieldset class="field checks wide">
+          <legend>Risk factors</legend>
+          <label class="check"><input type="checkbox" data-points="1" id="cv-chf" /> Congestive heart failure / LV dysfunction <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="cv-htn" /> Hypertension <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="cv-dm" /> Diabetes mellitus <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="2" id="cv-stroke" /> Prior stroke / TIA / thromboembolism <em>(+2)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="cv-vasc" /> Vascular disease (MI, PAD, aortic plaque) <em>(+1)</em></label>
+        </fieldset>
+
+        <label class="field">
+          <span>Age group</span>
+          <select id="cv-age">
+            <option value="0">&lt; 65 years (+0)</option>
+            <option value="1">65&ndash;74 years (+1)</option>
+            <option value="2">&ge; 75 years (+2)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Sex</span>
+          <select id="cv-sex">
+            <option value="0">Male (+0)</option>
+            <option value="1">Female (+1)</option>
+          </select>
+        </label>
+      </form>
+
+      <div class="results" id="chadsvasc-results">
+        <div class="result-cards single">
+          <div class="result-card highlight">
+            <h3>Total Score</h3>
+            <p class="big" id="res-chadsvasc">0</p>
+            <p class="unit">points</p>
+            <p class="sub" id="res-chadsvasc-risk"></p>
+          </div>
+        </div>
+        <p class="guidance" id="chadsvasc-guidance"></p>
+      </div>
+    </section>
+
+    <!-- ====================== HAS-BLED ====================== -->
+    <section class="panel" id="hasbled" role="tabpanel">
+      <div class="panel-head">
+        <h2>HAS-BLED Score</h2>
+        <p class="panel-sub">Major bleeding risk on anticoagulation</p>
+      </div>
+
+      <form id="hasbled-form" class="grid">
+        <fieldset class="field checks wide">
+          <legend>Risk factors</legend>
+          <label class="check"><input type="checkbox" data-points="1" id="hb-htn" /> Hypertension (uncontrolled, SBP &gt; 160) <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="hb-renal" /> Abnormal renal function <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="hb-liver" /> Abnormal liver function <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="hb-stroke" /> Prior stroke <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="hb-bleed" /> Bleeding history or predisposition <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="hb-inr" /> Labile INR (unstable / low TTR) <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="hb-elderly" /> Elderly (age &gt; 65) <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="hb-drugs" /> Drugs predisposing to bleeding (NSAIDs, antiplatelets) <em>(+1)</em></label>
+          <label class="check"><input type="checkbox" data-points="1" id="hb-alcohol" /> Alcohol &ge; 8 units / week <em>(+1)</em></label>
+        </fieldset>
+      </form>
+
+      <div class="results" id="hasbled-results">
+        <div class="result-cards single">
+          <div class="result-card highlight">
+            <h3>Total Score</h3>
+            <p class="big" id="res-hasbled">0</p>
+            <p class="unit">points</p>
+            <p class="sub" id="res-hasbled-risk"></p>
+          </div>
+        </div>
+        <p class="guidance" id="hasbled-guidance"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Codex Medicus &mdash; for educational purposes only. Always confirm with validated tools and clinical judgement.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
